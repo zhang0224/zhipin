@@ -20,7 +20,7 @@
                     </div>
                     <ul>
                         <li v-for="(item,index) in item.seedThreeInfo" :key="index">
-                            <div class="img-box"><img :src="item.img" alt=""></div>
+                            <div class="img-box"><img v-lazy="item.img" alt="" :key="item.img"></div>
                             <div class="static">
                                 <div class="text">
                                     <p class="name">{{ item.name }}</p>
@@ -42,7 +42,7 @@
         <div class="footer">
             <div class="wx-code">
                 <img src="../assets/img/wx-code.png" alt="">
-                <p>长按扫描二维码关注“嗨遇”公共号</p>
+                <p>长按扫描二维码关注“嗨遇”公众号</p>
             </div>
             <div class="copyright-tips">
                 <img src="../assets/img/active-footer.png" alt="">
@@ -54,10 +54,10 @@
                 <p class="title">预订成功</p>
                 <div class="tips-info">
                     <img src="../assets/img/icon-success.png" alt="">
-                    <p>详情请关注“嗨遇”公共号了解</p>
+                    <p>详情请关注“嗨遇”公众号了解</p>
                 </div>
                 <div class="button" @click="hidePop" >   
-                    <button>确定</button>
+                    <p>确定</p>
                 </div>
             </div>
         </div>
@@ -72,7 +72,8 @@ export default {
         return{
             listData:[],
             showLoading:true,
-            showSuccess:false
+            showSuccess:false,
+            canBuy:true
         }
     },
     components: {
@@ -119,13 +120,18 @@ export default {
             })
         },
         chatOpenId(){
+            let _this = this;
             axios.defaults.baseURL = '/api/' 
             this.$http({
                 method:'get',
-                url:'/wx/chatOpenId?openId=' + sessionStorage.getItem("openid"),   
+                url:'/wxchat/chatOpenId?openId=' + sessionStorage.getItem("openid"),   
             }).then(function(res){
                 console.log(res);
-                
+                if(res.data){
+                    _this.canBuy = true;
+                }else{
+                    _this.canBuy = false;
+                }
             }).catch(function(err){
                 console.log(err)
             })
@@ -133,6 +139,14 @@ export default {
         appointmentBuy(e){
             var _this = this;
             console.log(e.target.dataset);
+            if(!_this.canBuy){
+                let text = '亲，您已经预订过了哦~'
+                this.$toast(text, {
+                    durtaion: 2000,
+                    location: 'center' // 默认在中间
+                });
+                return;
+            }
             let totalfee = e.target.dataset.preprice;
             let name = e.target.dataset.name;
             _this.totalfee = totalfee;
@@ -202,6 +216,7 @@ export default {
                 method:'get',
                 url:'/wxchat/insertWxchatOrder?seedPrice=' + totalfee + '&payPrice='+ totalfee +'&seedName=' + name +'&openId='+sessionStorage.getItem("openid"),   
             }).then(function(res){
+                _this.canBuy = false;
                 _this.showLoading = false;
                 _this.showSuccess = true;
             }).catch(function(err){
@@ -214,8 +229,8 @@ export default {
             var query = obj.substring(index+1,obj.length);
             var vars = query.split("&");
             for (var i=0;i<vars.length;i++) {
-                    var pair = vars[i].split("=");
-                    if(pair[0] == variable){return pair[1];}
+                var pair = vars[i].split("=");
+                if(pair[0] == variable){return pair[1];}
             }
             return(false);
         },
@@ -467,7 +482,7 @@ export default {
     border-radius:3px;
     margin-top: 30px;
 }
-.pop-box .success .button button{
+.pop-box .success .button p{
     font-size:15px;
     font-weight:bold;
     color:rgba(255,255,255,1);
