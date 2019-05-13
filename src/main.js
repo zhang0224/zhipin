@@ -4,6 +4,7 @@ import router from './router'
 
 import 'lib-flexible'
 import {Alert, Confirm, Toast, Loading} from 'wc-messagebox'
+import VueLazyLoad from 'vue-lazyload'
 import FastClick from 'fastclick'
 FastClick.attach(document.body)
 import 'wc-messagebox/style.css'
@@ -13,12 +14,16 @@ Vue.use(Alert)
 Vue.use(Confirm)
 Vue.use(Toast)
 Vue.use(Loading)
+Vue.use(VueLazyLoad, {
+  error: require('./assets/img/icon-404.png'),
+  loading: require('./assets/img/icon-loading.gif'),
+})
 
 Vue.config.productionTip = false;
 
 axios.defaults.withCredentials=true
 axios.defaults.timeout = 5000 // 请求超时
-// axios.defaults.baseURL = '/api/'  // api 即上面 vue.config.js 中配置的地址
+// axios.defaults.baseURL = '/api/'
 
 new Vue({
   render: h => h(App),

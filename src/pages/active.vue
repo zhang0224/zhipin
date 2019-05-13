@@ -99,11 +99,13 @@ export default {
             };
         },
         getOpenId (code) { // 通过code获取 openId等用户信息，/api/user/wechat/login 为后台接口;
-            if(sessionStorage.getItem("code") == code){
-                return;
-            }
             let _this = this;
-            axios.defaults.baseURL = '/api/' 
+            if(sessionStorage.getItem("code") == code){
+                _this.getAllSend();
+                _this.chatOpenId();
+                return;
+            };
+            axios.defaults.baseURL = '/api/'
             this.$http({
                 method:'get',
                 url:'/wx/getOpenid?code=' + code,   
@@ -134,13 +136,22 @@ export default {
                 }
             }).catch(function(err){
                 console.log(err)
-            })
+            });
         },
+        
         appointmentBuy(e){
             var _this = this;
             console.log(e.target.dataset);
             if(!_this.canBuy){
                 let text = '亲，您已经预订过了哦~'
+                this.$toast(text, {
+                    durtaion: 2000,
+                    location: 'center' // 默认在中间
+                });
+                return;
+            }
+            if(!sessionStorage.getItem("openid")){
+                let text = '亲，网络出问题了请稍后再试～'
                 this.$toast(text, {
                     durtaion: 2000,
                     location: 'center' // 默认在中间
@@ -205,7 +216,8 @@ export default {
                             location: 'center' // 默认在中间
                         });
                     }
-            }); 
+                }
+            ); 
         },
         sureOrder(){
             let _this = this;
@@ -216,7 +228,9 @@ export default {
                 method:'get',
                 url:'/wxchat/insertWxchatOrder?seedPrice=' + totalfee + '&payPrice='+ totalfee +'&seedName=' + name +'&openId='+sessionStorage.getItem("openid"),   
             }).then(function(res){
-                _this.canBuy = false;
+                console.log(res)
+                let check = true;
+                _this.chatOpenId(check);
                 _this.showLoading = false;
                 _this.showSuccess = true;
             }).catch(function(err){

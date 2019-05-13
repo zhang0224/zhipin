@@ -3,11 +3,11 @@
         <div class="loading static" id="loading">
             <div class="loading-item"> 
                 <div class="spinner">
-                <div class="rect1"></div>
-                <div class="rect2"></div>
-                <div class="rect3"></div>
-                <div class="rect4"></div>
-                <div class="rect5"></div>
+                    <div class="rect1"></div>
+                    <div class="rect2"></div>
+                    <div class="rect3"></div>
+                    <div class="rect4"></div>
+                    <div class="rect5"></div>
                 </div>
                 <p>loading...</p>
             </div>
@@ -84,7 +84,7 @@ export default {
     -webkit-animation-delay: -0.8s;
     animation-delay: -0.8s;
 }
-.static .loading p{
+.static .loading-item p{
     margin: 10px;
 }
 
