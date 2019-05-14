@@ -3,7 +3,7 @@
         <swiper :options="swiperBannerOption" ref="mySwiper" id="swiperHeader">
             <!-- slides -->
             <swiper-slide>
-               <img src="../../assets/img/banner.png" alt="">
+               <img :src="banner.banner" alt="">
             </swiper-slide>
             <!-- Optional controls -->
             <div class="swiper-pagination"  slot="pagination"></div>
@@ -20,7 +20,7 @@
             <router-link to="explain">
             <p class="explain">
                 <img src="../../assets/img/icon-explain.png" alt="">
-                <span>种子说明</span>
+                <span>游戏说明</span>
             </p>
             </router-link>
         </div>
@@ -43,33 +43,43 @@
             <swiper ref="mySwiper" :options="swiperOption" v-if="tabs.length > 0">
                 <swiper-slide v-for="(item,index) in tabs" :key="index">
                     <div class="type-list">
-                        <ul>
-                            <li 
-                                v-for="(item,index1) in tabs[index].subTabs" :key="index1" 
-                                :class="{'active': index1 == subCurIndex[index] }" 
-                                @click="subSelected(index1,index)"
-                            >
-                                {{ item.name }}
-                            </li> 
+                        <ul v-if=" tabs[index].subTabs && tabs[index].subTabs.length > 1">
+                            <template>
+                                <li 
+                                    v-for="(item,index1) in tabs[index].subTabs" :key="index1" 
+                                    :class="{'active': index1 == subCurIndex[index] }" 
+                                    @click="subSelected(index1,index)"
+                                >
+                                    {{ item.name }}
+                                </li> 
+                            </template>
                         </ul>
                     </div>
                     <mescroll-vue ref="mescroll{{index}}" :down="getMescrollDown(index)" :up="getMescrollUp(index)" @init="mescrollInit(index,arguments)">
                         <ul :id="dataList(index)" class="itemList">
                             <li class="data-li" v-for="pd in tabs[index].list" :key="pd.id">
-                                <div class="pd-img-box">   
-                                    <img class="pd-img" :src="pd.img"/>
+                                <div class="pd-img-box">
+                                    <img class="item-bg" src="../../assets/img/item-bg.png"/>
+                                    <img class="item-pd" src="../../assets/img/item-pd.png"/>
+                                    <div class="pd-item-img">   
+                                        <img class="pd-img" v-lazy="pd.img" alt="" :key="pd.img"/>
+                                    </div>
                                 </div>
                                 <div class="static item-box">
-                                    <img src="../../assets/img/icon-tips.png" alt="" class="icon-tips">
-                                    <div class="static text-box">  
-                                        <div class="static">   
+                                    <div class="static text-box">
+                                        <div class="static">
                                             <div class="pd-name">{{pd.name}}</div>
                                             <div class="static price-box">
-                                                <p class="pd-price">¥{{pd.costPrice/100}}</p>
-                                                <p class="pd-old-price">{{pd.presentPrice/100}}</p>
+                                                <p class="pd-price">¥{{pd.presentPrice}}</p>
+                                                <p class="pd-old-price">{{pd.costPrice}}</p>
                                             </div>
                                         </div>
-                                        <p class="pd-buy">立即购买</p>
+                                        <p 
+                                            class="pd-buy"
+                                            v-bind:data-presentPrice="pd.presentPrice"
+                                            v-bind:data-name="pd.name"
+                                            @click="appointmentBuy($event)">
+                                            立即购买</p>
                                     </div>
                                 </div>
                             </li>
@@ -78,27 +88,27 @@
                 </swiper-slide>
             </swiper>
         </div>
-        <div class="pop-box" style="display:none">
-            <div class="sure-order" style="display:none">
+        <div class="pop-box" v-show="showPop">
+            <div class="sure-order" v-show="showSure">
                 <p class="title">确认订单</p>
                 <div class="order-info">
-                    <p><span>种子名称：</span>迪奥080种子</p>
-                    <p><span>种子价格：</span>¥ 50</p>
-                    <p><span>实际支付价格：</span>¥ 50</p>
+                    <p><span>种子名称：</span>{{ name }}</p>
+                    <p><span>种子价格：</span>¥{{ totalfee }}</p>
+                    <p><span>实际支付价格：</span>¥ {{ totalfee }}</p>
                 </div>
                 <div class="button">
-                    <button class="canale">取消支付</button>
-                    <button class="sure-pay">立即支付</button>
+                    <p class="canale" @click="canale($event)">取消支付</p>
+                    <p class="sure-pay" @click="surePay($event)">立即支付</p>
                 </div>
             </div>
-            <div class="success" style="display:none">   
+            <div class="success" v-show="showSuccess">   
                 <p class="title">支付成功</p>
                 <div class="tips-info">
                     <img src="../../assets/img/icon-success.png" alt="">
                     <p>感谢您购买种子，届时请登录APP培养收取果实！</p>
                 </div>
                 <div class="button">   
-                    <button>确定</button>
+                    <p @click="hidePop">确定</p>
                 </div>
             </div>
         </div>
@@ -128,7 +138,7 @@ export default {
             subTabs:[],
             subCurIndex:[],
             allData:[],
-            tabWidth: 80, // 每个tab的宽度
+            tabWidth: 65, // 每个tab的宽度
             barWidth: 40, // tab底部红色线的宽度
             curIndex: 0, // 当前tab的下标
             tabScrollLeft: 0, // 菜单滚动条的位置
@@ -138,7 +148,13 @@ export default {
                         this.changeTab(this.swiper.activeIndex);
                     }
                 }
-            }
+            },
+            showPop:false,
+            showSuccess:false,
+            showSure:false,
+            name:"",
+            totalfee:"",
+            canBuy:true
         }
     },
     components: {
@@ -156,16 +172,192 @@ export default {
         }
     },
     created () {
-        // this.getStatus();
+        window.APPID = "wx154654ede25d7f0b";
+        this.getCode();
         this.getAllSendTotal();
-        this.getAllSend();
+        // this.getCheckBuy();
     },
     mounted(){
         this.getBnaner();
         // this.initSticky();
     },
     methods: {
-
+        getCode () { // 非静默授权，第一次有弹框
+            const code = this.GetUrlParam("code") ; // 截取路径中的code，如果没有就去微信授权，如果已经获取到了就直接传code给后台获取openId
+            console.log(code);
+            const local = window.location.href;
+            if (!code) {
+                window.location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?appid=' + window.APPID + '&redirect_uri=' + encodeURIComponent(local) + '&response_type=code&scope=snsapi_base&state=1#wechat_redirect';
+            } else {
+                this.getOpenId(code) //把code传给后台获取用户信息
+            };
+        },
+        getOpenId (code) { // 通过code获取 openId等用户信息，/api/user/wechat/login 为后台接口;
+            if(sessionStorage.getItem("code") == code){
+                return;
+            }
+            let _this = this;
+            axios.defaults.baseURL = '/api/' 
+            this.$http({
+                method:'get',
+                url:'/wx/getOpenid?code=' + code,   
+            }).then(function(res){
+                console.log(res);
+                if(res.data.openid != null){
+                    sessionStorage.setItem("openid",res.data.openid);
+                    sessionStorage.setItem("code",code);
+                }
+                _this.getCheckBuy();
+            }).catch(function(err){
+                console.log(err)
+            })
+        },
+        GetUrlParam(variable){
+            var index = window.location.href.lastIndexOf("?");
+            var obj = window.location.href;
+            var query = obj.substring(index+1,obj.length);
+            var vars = query.split("&");
+            for (var i=0;i<vars.length;i++) {
+                    var pair = vars[i].split("=");
+                    if(pair[0] == variable){return pair[1];}
+            }
+            return(false);
+        },
+        //获取 订单信息 查看是否购买过
+        getCheckBuy(){
+            var _this = this;
+            axios.defaults.baseURL = '/api/';
+            this.$http({ 
+                method:'post', 
+                url:'/wxchat/getAllByOpenId?openId=' + sessionStorage.getItem("openid"), 
+            }).then(function(res){
+                console.log(res);
+                if(res.data.response.code == '0000'){
+                    if(res.data.result.length >= 3){
+                        _this.canBuy = false;
+                    }else{
+                        _this.canBuy = true;
+                    }
+                    
+                    if(res.data.result.length > 0){
+                        _this.status = false;
+                    }
+                }
+            }).catch(function(err){ 
+                console.log(err) 
+            });
+        },
+        appointmentBuy(e){
+            var _this = this;
+            if(!_this.canBuy){
+                let text = '亲，您已经预订过了哦~'
+                this.$toast(text, {
+                    durtaion: 2000,
+                    location: 'center' // 默认在中间
+                });
+                return;
+            }
+            console.log(e.target.dataset);
+            let totalfee = e.target.dataset.presentprice;
+            let name = e.target.dataset.name;
+            _this.totalfee = totalfee;
+            _this.name = name;
+            _this.showPop=true;
+            _this.showSure=true;
+        },
+        canale(){
+            let _this = this;
+            _this.showPop = false;
+            _this.showSure = false;
+        },
+        surePay(){
+            let _this = this;
+            let totalfee =  _this.totalfee;
+            let name = _this.name;
+            axios.defaults.baseURL = '/pay/';
+            this.$http({
+                method:'post',
+                url: '/payOrder/requestpay.dhtml?openid='+sessionStorage.getItem("openid")+"&totalfee=" + totalfee,  
+            }).then(function(res){
+                console.log(res);
+                let userInfo = JSON.parse(res.data.desc);
+                console.log(userInfo);
+                // _this.sureOrder(); // 支付成功后在调用 本地测试可开启
+                _this.showPop = false;
+                _this.showSure = false;
+                _this.payorder(userInfo);
+            }).catch(function(err){ 
+                console.log(err) 
+            });
+        },
+        payorder(userInfo){
+            if (typeof WeixinJSBridge == "undefined"){
+                if( document.addEventListener ){
+                    document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+                }else if (document.attachEvent){
+                    document.attachEvent('WeixinJSBridgeReady', onBridgeReady); 
+                    document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+                }
+            }else{
+                this.onBridgeReady(userInfo);
+            }
+        },
+        onBridgeReady(userInfo){
+            var _this = this;
+            WeixinJSBridge.invoke(
+                'getBrandWCPayRequest', {
+                    "appId":"wx154654ede25d7f0b",     //公众号名称，由商户传入     
+                    "timeStamp":userInfo.timeStamp,         //时间戳，自1970年以来的秒数     
+                    "nonceStr":userInfo.nonceStr, //随机串     
+                    "package":userInfo.package,     
+                    "signType":"MD5",         //微信签名方式：     
+                    "paySign":userInfo.sign //微信签名 
+                },
+                function(res){
+                    console.log(res);
+                    if(res.err_msg == "get_brand_wcpay_request:ok" ){
+                        // 使用以上方式判断前端返回,微信团队郑重提示
+                        _this.showLoading = true;
+                        _this.sureOrder();
+                    } else if(res.err_msg == "get_brand_wcpay_request:cancel"){
+                        this.$toast("您取消了支付", {
+                            durtaion: 1000,
+                            location: 'center' // 默认在中间
+                        });
+                    }else if(res.err_msg == "get_brand_wcpay_request:fail"){
+                        this.$toast("一会再试试吧,失败了呢～", {
+                            durtaion: 1000,
+                            location: 'center' // 默认在中间
+                        });
+                    }
+                }
+            ); 
+        },
+        sureOrder(){
+            let _this = this;
+            let totalfee = this.totalfee;
+            let name = this.name;
+            axios.defaults.baseURL = '/api/' 
+            this.$http({
+                method:'get',
+                url:'/wxchat/insertWxchatOrder?seedPrice=' + totalfee + '&payPrice='+ totalfee +'&seedName=' + name +'&openId='+sessionStorage.getItem("openid"),   
+            }).then(function(res){
+                _this.showLoading = false;
+                _this.showSure = false;
+                _this.showPop = true;
+                _this.showSuccess = true;
+                _this.status = false;
+                _getCheckBuy();
+            }).catch(function(err){
+                console.log(err)
+            })
+        },
+        hidePop(){
+            let _this = this;
+            _this.showPop = false;
+            _this.showSure = false;
+            _this.showSuccess = false;
+        },
         //二级分类选中效果
         subSelected(index1,index){
             console.log(index1,index);
@@ -213,7 +405,8 @@ export default {
             }).then(function(res){
                 console.log(res);
                 if(res.data.response.code == "0000"){
-                    let result = res.data.result;
+                    let recommend = [{id:0,name:"推荐",seedTwoInfo:[]}];
+                    let result = recommend.concat(res.data.result);
                     let subTabs = [];
                     
                     for(let i in result){
@@ -222,12 +415,12 @@ export default {
                             name:"全部"
                         }
                         _this.subCurIndex.push(0);
-                        _this.tabs[i].subTabs = [];
+                        _this.$set(_this.tabs[i],"subTabs",[])
                         _this.tabs[i].subTabs.push(all);
-                        _this.tabs[i].subTabs = _this.tabs[i].subTabs.concat(result[i].seedTwoInfo);
+                        _this.$set(_this.tabs[i],"subTabs",_this.tabs[i].subTabs.concat(result[i].seedTwoInfo))
                         _this.allData[i].subItem = result[i].seedTwoInfo;
                     };
-                    console.log(_this.allData)
+                    console.log(_this.allData);
                     console.log(_this.tabs);
                 }
             }).catch(function(err){ 
@@ -248,6 +441,19 @@ export default {
                 if(res.data.response.code == "0000"){
                     let result = res.data.result;
                     let tabs = [];
+                    let recommend = [];
+
+                    let obj = {};
+                    obj.name = "推荐";
+                    obj.list = [];
+                    //截取一级标题推荐数据  推荐数据暂无二级分类 且为全部所有数据 
+                    for(let i in result){
+                        obj.list = obj.list.concat(result[i].seedThreeinfo);
+                    };
+                    obj.seedThreeinfo = obj.list;
+                    recommend[0] = obj;
+                    result = recommend.concat(res.data.result)
+
                     for(let i in result){
                         let obj = {};
                         result[i].isListInit = false;
@@ -255,8 +461,10 @@ export default {
                         tabs.push(result[i]);
                         obj.total = result[i].seedThreeinfo;
                         _this.allData.push(obj)
-                    }
+                    };
+                    console.log(_this.allData)
                     _this.tabs = tabs;
+                    _this.getAllSend();
                 }
             }).catch(function(err){ 
                 console.log(err) 
@@ -376,8 +584,9 @@ export default {
                 // ....
             }
             //暂时处理为每次下啦的时候 初始化  后续在设置数据
-            this.$set(this.subCurIndex, mescroll.tabIndex, 0);
+            // this.$set(this.subCurIndex, mescroll.tabIndex, 0);
             mescroll.resetUpScroll();// 触发下拉刷新的回调,加载第一页的数据
+            mescroll.lockDownScroll(null);
 
         },
         /* 上拉加载的回调 page = {num:1, size:10}; num:当前页 从1开始, size:每页数据条数 */
@@ -390,7 +599,7 @@ export default {
             var _this = this;
             this.tabs[mescroll.tabIndex].isListInit = true;// 标记列表已初始化,保证列表只初始化一次
             this.getListDataFromNet(mescroll.tabIndex, page.num, page.size, (curPageData) => {
-                mescroll.endSuccess(curPageData.length);// 联网成功的回调,隐藏下拉刷新和上拉加载的状态;
+                mescroll.endSuccess(curPageData.length,false);// 联网成功的回调,隐藏下拉刷新和上拉加载的状态;
                 if (page.num === 1) _this.tabs[mescroll.tabIndex].list = []; // 如果是第一页需手动制空列表
                 _this.tabs[mescroll.tabIndex].list = _this.tabs[mescroll.tabIndex].list.concat(curPageData); // 追加新数据
             }, () => {
@@ -412,6 +621,16 @@ export default {
                 if(res.data.response.code == "0000"){
                     let tabs = [];
                     let result = res.data.result;
+                    
+                    let obj = {};
+                    obj.name = "推荐";
+                    obj.list = [];
+                    for(let i in result){
+                        obj.list = obj.list.concat(result[i].seedThreeinfo);
+                    };
+                    obj.seedThreeinfo = obj.list;
+                    tabs[0] = obj;
+
                     for(let i in result){
                         result[i].isListInit = false;
                         result[i].list = result[i].seedThreeinfo;
@@ -456,7 +675,7 @@ export default {
     margin:  0 10px;
     position: relative;
     height: 140px;
-    border-bottom: 1px solid rgba(160,160,160,0.27);
+    border-bottom: 1px dashed rgba(255,108,46,1);
 }
 .status  .item{
     display: flex;
@@ -496,11 +715,10 @@ export default {
 .tabs-warp{
     /* height: 43px;高度比tabs-content小, 目的是隐藏tabs的水平滚动条 */
     overflow-y: hidden;
-    border-bottom: 1px solid #eee;
     box-sizing: content-box;
     margin:  0 10px;
-    border-bottom: 1px solid rgba(160,160,160,0.14);
-    }
+    border-bottom: 1px dashed rgba(255,108,46,1);
+}
 .tabs-warp .tabs-content{
     width: 100%;
     overflow-x: auto;
@@ -509,18 +727,22 @@ export default {
 .tabs-warp .tabs-content .tabs{
     width: 100%;
     white-space: nowrap;
-    padding-left: 10px;
 }
 .tabs-warp .tabs-content .tabs li{
     display: inline-block;
-    height: 40px;
-    line-height: 45px;
     vertical-align: middle;
-    text-align: left;
-    color: #868686;
+    color: #0F0F0F;
+    font-size: 15px;
+    margin: 11px 0 ;
+    text-align: center;
+    height:27px;
+    line-height: 27px;
+    margin-right: 10px;
 }
 .tabs-warp .tabs-content .tabs .active{
-    color: #0E0E0E;
+    color: #fff;
+    background:rgba(255,108,46,1);
+    border-radius:3px;
 }
 .content .type-item{
     position:static;
@@ -547,19 +769,20 @@ export default {
     background: #ffffff
 }
 .content  .type-list ul li{
-    border:1px solid rgba(27,27,27,0.3);
+    border:1px solid rgba(27,27,27,0.5);
     border-radius:3px;
-    font-size: 11px;
+    font-size: 12px;
     height: 22px;
-    color: #868686;
+    color: #1B1B1B;
     display: flex;
     align-items:center;
     justify-content: center;
-    padding: 0 10px;
+    padding: 0 5px;
 }
 .content .type-list ul li.active{
-    border:1px solid rgba(255,0,0,1);
-    color: #FF0000;
+    border:1px solid rgba(255,108,46,1);
+    border-radius:3px;
+    color: #FF6C2E;
 }
 /* .tabs-warp  .type-list ul li:first-child{
     margin-left: 0;
@@ -597,7 +820,7 @@ transition: left 300ms;
 /*展示上拉加载的数据列表*/
 .data-li{
     position: relative;
-    height: 200px;
+    /* height: 200px; */
     background: #ffffff;
     border-radius:5px;
     width: 47%;
@@ -605,13 +828,44 @@ transition: left 300ms;
 }
 .pd-img-box{
     width: 100%;
-    height: 130px;
+    height: 150px;
+    font-size: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+.pd-img-box img.item-bg{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.pd-img-box img.item-pd{
+    position: absolute;
+    z-index: 11;
+    width: 75px;
+    height: 90px;
+}
+.pd-img-box .pd-item-img{
+    position: absolute;
+    background: #7FD823;
+    z-index: 22;
+    width: 44px;
+    height: 44px;
+    border-radius: 100%;
+    overflow: hidden;
+    left: 10px;
+    bottom: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
-.pd-img-box img{
-    object-fit: contain
+.pd-img-box .pd-item-img .pad-img{
+    width: 100%;
+    object-fit: contain;
+    border-radius: 100%;
 }
 .itemList {
     overflow: hidden
@@ -622,13 +876,10 @@ transition: left 300ms;
 .data-li:nth-of-type(even){
     float: right;
 }
-.data-li .pd-img{
-    width: 100%;
-    height: 80px;
-}
 .data-li .item-box{
     text-align: left;
     font-size: 0;
+    padding-bottom: 10px;
 }
 .data-li .item-box .icon-tips{ 
     width: 60px;
@@ -646,6 +897,8 @@ transition: left 300ms;
     font-size: 9px;
     overflow: hidden;
     width: 75px;
+    color: #0C0C0C;
+    font-size: 12px;
     text-overflow: ellipsis;/*文字隐藏后添加省略号*/
     white-space: nowrap;/*强制不换行*/
 }
@@ -654,12 +907,12 @@ transition: left 300ms;
     align-items: center;
 }
 .data-li .pd-price{
-    color:rgba(252,6,6,1);
-    font-size:11px;
+    font-size:14px;
+    color:rgba(255,108,46,1);
 }
 .data-li .pd-old-price{
-    color:#797979;
-    font-size:10px;
+    color:rgba(121,121,121,1);
+    font-size:11px;
     text-decoration: line-through;
     margin-left: 10px;
 }
@@ -668,7 +921,7 @@ transition: left 300ms;
     color: gray;
     width:60px;
     height:25px;
-    background:rgba(255,0,0,1);
+    background:rgba(255,108,46,1);
     border-radius:3px;
     color:rgba(255,255,255,1);
     display: flex;
@@ -724,13 +977,16 @@ transition: left 300ms;
     align-items: center;
     justify-content: space-between
 }
-.pop-box .sure-order .button button{
+.pop-box .sure-order .button p{
     width: 78px;
     height:26px;
     border-radius:13px;
     color: #FFFFFF;
     background: #FF0000;
     font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center
 }
 .pop-box .sure-order .button .canale{
     color: #101010;
@@ -755,7 +1011,7 @@ transition: left 300ms;
     border-radius:3px;
     margin-top: 30px;
 }
-.pop-box .success .button button{
+.pop-box .success .button p{
     font-size:15px;
     font-weight:bold;
     color:rgba(255,255,255,1);
