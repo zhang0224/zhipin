@@ -226,7 +226,7 @@ export default {
             axios.defaults.baseURL = '/api/' 
             this.$http({
                 method:'get',
-                url:'/wxchat/insertWxchatOrder?seedPrice=' + totalfee + '&payPrice='+ totalfee +'&seedName=' + name +'&openId='+sessionStorage.getItem("openid"),   
+                url:'/wxchat/insertWxchatOrder?seedPrice=' + totalfee + '&payPrice='+ totalfee +'&seedName=' + name +'&openId='+sessionStorage.getItem("openid"),
             }).then(function(res){
                 console.log(res)
                 let check = true;
