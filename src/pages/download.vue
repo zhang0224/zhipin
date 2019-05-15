@@ -8,7 +8,9 @@
 
 <script>
 export default {
-    
+    created () {
+        document.title="App下载"
+    },
 }
 </script>
 

@@ -42,11 +42,13 @@ export default {
         Loading
     },
     created () {
+        sessionStorage.setItem("openid","olKeh0gNM1OoGKIqCE-RZdVg2b2g")
+        document.title="订单查询"
         window.APPID = "wx154654ede25d7f0b";
-        this.getCode();
     },
     mounted () {
-        
+        this.getCode();
+        // this.initMescroll()
     },
     methods: {
 
@@ -152,6 +154,7 @@ export default {
         * */
         getListDataFromNet (pageNum, pageSize, successCallback, errorCallback) {
             let _this = this;
+            _this.mescroll.lockDownScroll(null);
             axios.defaults.baseURL = '/api/' 
             this.$http({
                 method:'post', 

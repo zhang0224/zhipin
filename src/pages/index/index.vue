@@ -1,5 +1,5 @@
 <template>
-    <div class="swiper-box">   
+    <div class="swiper-box" id="swiper">   
         <swiper :options="swiperBannerOption" ref="mySwiper" id="swiperHeader">
             <!-- slides -->
             <swiper-slide>
@@ -11,11 +11,11 @@
         <div class="status" id="statusType">   
             <div class="item status-no" v-if="status">
                 <img :src="banner.statusNo" alt="">
-                <p>～您还没有预约种子哦～</p>
+                <p>～你还没有预约种子哦～</p>
             </div>
             <div class="item status-yes" v-if="!status">   
                 <img :src="banner.statusYes" alt="">
-                <p>～您的mac种子已成功预约～</p>
+                <p>～你的种子已入袋快去植职农场种植吧～</p>
             </div>
             <router-link to="explain">
             <p class="explain">
@@ -51,11 +51,13 @@
                                     @click="subSelected(index1,index)"
                                 >
                                     {{ item.name }}
-                                </li> 
+                                </li>
                             </template>
                         </ul>
                     </div>
-                    <mescroll-vue ref="mescroll{{index}}" :down="getMescrollDown(index)" :up="getMescrollUp(index)" @init="mescrollInit(index,arguments)">
+                    <!-- <mescroll-vue ref="mescroll{{index}}" :down="getMescrollDown(index)" :up="getMescrollUp(index)" @init="mescrollInit(index,arguments)"> -->
+                    <!-- <mescroll-vue ref="mescroll{{index}}"> -->
+                    <div class="mescroll">
                         <ul :id="dataList(index)" class="itemList">
                             <li class="data-li" v-for="pd in tabs[index].list" :key="pd.id">
                                 <div class="pd-img-box">
@@ -79,12 +81,13 @@
                                             v-bind:data-presentPrice="pd.presentPrice"
                                             v-bind:data-name="pd.name"
                                             @click="appointmentBuy($event)">
-                                            立即购买</p>
+                                            购买种子</p>
                                     </div>
                                 </div>
                             </li>
                         </ul>
-                    </mescroll-vue>
+                    </div>
+                    <!-- </mescroll-vue> -->
                 </swiper-slide>
             </swiper>
         </div>
@@ -105,7 +108,7 @@
                 <p class="title">支付成功</p>
                 <div class="tips-info">
                     <img src="../../assets/img/icon-success.png" alt="">
-                    <p>感谢您购买种子，届时请登录APP培养收取果实！</p>
+                    <p>你的种子已入袋，请到职拼app中的职植农场 培育你的种子吧！</p>
                 </div>
                 <div class="button">   
                     <p @click="hidePop">确定</p>
@@ -125,6 +128,7 @@ import MescrollVue from 'mescroll.js/mescroll.vue'
 import mockData from '../../mock/pdlist'
 import axios from 'axios'
 import Loading from '../../components/loading.vue'
+import { fail } from 'assert';
 
 export default {
     name: 'Index',
@@ -172,13 +176,16 @@ export default {
         }
     },
     created () {
+        document.title="预约种子"
         window.APPID = "wx154654ede25d7f0b";
         this.getCode();
-        this.getAllSendTotal();
+
+        //本地可打开
         // this.getCheckBuy();
     },
     mounted(){
         this.getBnaner();
+        this.getAllSendTotal();
         // this.initSticky();
     },
     methods: {
@@ -218,8 +225,8 @@ export default {
             var query = obj.substring(index+1,obj.length);
             var vars = query.split("&");
             for (var i=0;i<vars.length;i++) {
-                    var pair = vars[i].split("=");
-                    if(pair[0] == variable){return pair[1];}
+                var pair = vars[i].split("=");
+                if(pair[0] == variable){return pair[1];}
             }
             return(false);
         },
@@ -424,7 +431,7 @@ export default {
                     console.log(_this.tabs);
                 }
             }).catch(function(err){ 
-                console.log(err) 
+                console.log(err)
             });
             this.showLoading = false;
         },
@@ -454,15 +461,21 @@ export default {
                     recommend[0] = obj;
                     result = recommend.concat(res.data.result)
 
+                    console.log(result)
+
                     for(let i in result){
                         let obj = {};
                         result[i].isListInit = false;
-                        result[i].list = [];
+                        if(!result[i].list){
+                            result[i].list = [];
+                            result[i].list = result[i].seedThreeinfo;
+                        }
+                        
                         tabs.push(result[i]);
                         obj.total = result[i].seedThreeinfo;
                         _this.allData.push(obj)
                     };
-                    console.log(_this.allData)
+                    
                     _this.tabs = tabs;
                     _this.getAllSend();
                 }
@@ -488,13 +501,13 @@ export default {
                 callback: this.upCallback, // 上拉回调,此处可简写; 相当于 callback: function (page) { upCallback(page); }
                 noMoreSize: 4, // 如果列表已无数据,可设置列表的总数量要大于半页才显示无更多数据;避免列表数据过少(比如只有一条数据),显示无更多数据会不好看; 默认5
                 empty: {
-                warpId: emptyWarpId, // 父布局的id;
-                icon: 'http://www.mescroll.com/img/mescroll-empty.png', // 图标,默认null
-                tip: '暂无相关数据~', // 提示
-                // btntext: '去逛逛 >', // 按钮,默认""
-                // btnClick: function () { // 点击按钮的回调,默认null
-                //     alert('点击了按钮,具体逻辑自行实现')
-                // }
+                    warpId: emptyWarpId, // 父布局的id;
+                    icon: 'http://www.mescroll.com/img/mescroll-empty.png', // 图标,默认null
+                    tip: '暂无相关数据~', // 提示
+                    // btntext: '去逛逛 >', // 按钮,默认""
+                    // btnClick: function () { // 点击按钮的回调,默认null
+                    //     alert('点击了按钮,具体逻辑自行实现')
+                    // }
                 },
                 toTop: { // 配置回到顶部按钮
                     src: 'http://www.mescroll.com/img/mescroll-totop.png' // 图片路径,默认null (建议写成网络图,不必考虑相对路径)
@@ -532,12 +545,12 @@ export default {
         },
         // 切换菜单
         changeTab (tabIndex) {
-            
+            let _this = this;
             let mescroll = document.getElementsByClassName("mescroll");
             for(let i = 0;i<mescroll.length;i++){
                 mescroll[i].style.display = "none"
             }
-            mescroll[tabIndex].style.display = "block"
+            mescroll[tabIndex].style.display = "block";
 
             if (this.curIndex === tabIndex) return; // 避免重复调用
             let curTab = this.tabs[this.curIndex];// 当前列表
@@ -555,7 +568,17 @@ export default {
                 curTab.mescroll.getStep(star, end, function (step) {
                     tabsContent.scrollLeft = step; // 从当前位置逐渐移动到中间位置,默认时长300ms
                 });
-            }
+            };
+
+            _this.timer = setInterval(function(){
+                var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
+                var ispeed = Math.floor(-scrollTop/6);
+                if(scrollTop <= 0){
+                    clearInterval(_this.timer);
+                }
+                document.documentElement.scrollTop = document.body.scrollTop=scrollTop+ispeed;
+            },30);
+
             if (newTab.mescroll) {
                 if (!newTab.isListInit) {
                     // 加载列表
@@ -584,9 +607,8 @@ export default {
                 // ....
             }
             //暂时处理为每次下啦的时候 初始化  后续在设置数据
-            // this.$set(this.subCurIndex, mescroll.tabIndex, 0);
             mescroll.resetUpScroll();// 触发下拉刷新的回调,加载第一页的数据
-            mescroll.lockDownScroll(null);
+            mescroll.lockDownScroll(true);
 
         },
         /* 上拉加载的回调 page = {num:1, size:10}; num:当前页 从1开始, size:每页数据条数 */
@@ -674,8 +696,7 @@ export default {
 .status{
     margin:  0 10px;
     position: relative;
-    height: 140px;
-    border-bottom: 1px dashed rgba(255,108,46,1);
+    border-bottom: 1px dashed rgba(255,108,46,0.47);
 }
 .status  .item{
     display: flex;
@@ -684,12 +705,14 @@ export default {
     flex-direction: column;
     color:rgba(14,14,14,1);
     font-size: 12px;
-    
+}
+.status  .item p{
+    font-size:15px;
+    color:rgba(14,14,14,1);
+    margin-bottom: 10px;
 }
 .status  .item img{
-    width: 63px;
-    margin-bottom: 15px;
-    margin-top: 25px;
+    width: 122px;
 }
 .status .explain{
     position: absolute;
@@ -697,13 +720,13 @@ export default {
     top: 10px;
     width:75px;
     height:27px;
-    border:1px solid rgba(255,0,0,1);
     border-radius:0px 3px 0px 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 12px;
-    color:rgba(245,8,8,1);
+    color:rgba(255,255,255,1);
+    background:rgba(255,108,46,1);
 }
 .status .explain img{
     width:11px;
@@ -713,11 +736,10 @@ export default {
 
 /*菜单*/
 .tabs-warp{
-    /* height: 43px;高度比tabs-content小, 目的是隐藏tabs的水平滚动条 */
     overflow-y: hidden;
     box-sizing: content-box;
     margin:  0 10px;
-    border-bottom: 1px dashed rgba(255,108,46,1);
+    border-bottom: 1px dashed rgba(255,108,46,0.47);
 }
 .tabs-warp .tabs-content{
     width: 100%;
@@ -745,12 +767,21 @@ export default {
     border-radius:3px;
 }
 .content .type-item{
-    position:static;
+    /* position:static;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 22; */
+    background: #fff;
+}
+.content {
+    /* position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 22;
-    background: #fff;
+    height: 100%;
+    background: #fff; */
 }
 .content .fixed{
     position: fixed;
@@ -764,9 +795,9 @@ export default {
     display: flex;
     align-items: center;
     height: 44px;
-    /* border-top:1px solid rgba(160,160,160,0.14); */
-    justify-content:space-around;
-    background: #ffffff
+    justify-content:flex-start;
+    background: #ffffff;
+    padding-left: 10px;
 }
 .content  .type-list ul li{
     border:1px solid rgba(27,27,27,0.5);
@@ -777,7 +808,11 @@ export default {
     display: flex;
     align-items:center;
     justify-content: center;
-    padding: 0 5px;
+    padding:  0 10px;
+    margin-right: 10px;
+}
+.content  .type-list ul li:last-child(){
+    margin-right: 0;
 }
 .content .type-list ul li.active{
     border:1px solid rgba(255,108,46,1);
@@ -803,8 +838,8 @@ transition: left 300ms;
     top: 40px;
     left: 0;
     right: 0;
-    bottom: 0; */
-    background: #f5f5f5;
+    bottom: 0;
+    background: #f5f5f5; */
 }
 .content .sticky{
     position: fixed;
@@ -816,6 +851,8 @@ transition: left 300ms;
 .content .swiper-wrapper .swiper-slide .mescroll{
     padding: 21px 15px 40px 15px;
     box-sizing: border-box;
+    min-height: 100px;
+    height: 100%;
 }
 /*展示上拉加载的数据列表*/
 .data-li{
@@ -841,6 +878,9 @@ transition: left 300ms;
     position: absolute;
     top: 0;
     left: 0;
+    border-radius: 5px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
 }
 .pd-img-box img.item-pd{
     position: absolute;
@@ -850,7 +890,7 @@ transition: left 300ms;
 }
 .pd-img-box .pd-item-img{
     position: absolute;
-    background: #7FD823;
+    background: #fff;
     z-index: 22;
     width: 44px;
     height: 44px;
@@ -879,7 +919,8 @@ transition: left 300ms;
 .data-li .item-box{
     text-align: left;
     font-size: 0;
-    padding-bottom: 10px;
+    padding-bottom: 7px;
+    height: 40px;
 }
 .data-li .item-box .icon-tips{ 
     width: 60px;
@@ -966,9 +1007,8 @@ transition: left 300ms;
     height: 35px;
     line-height: 70px;
     font-size:13px;
-    font-weight:200;
-    color:rgba(16,16,16,1);
     color: #101010;
+    font-size:13px;
 }
 .pop-box .sure-order .button{
     margin-top: 35px;
@@ -982,7 +1022,7 @@ transition: left 300ms;
     height:26px;
     border-radius:13px;
     color: #FFFFFF;
-    background: #FF0000;
+    background:rgba(255,108,46,1);
     font-size: 12px;
     display: flex;
     align-items: center;
@@ -1001,13 +1041,13 @@ transition: left 300ms;
     width: 200px;
     margin: auto;
     font-size:12px;
-    color:rgba(58,57,57,1);
+    color: #3A3939;
 }
 .pop-box .success .button{
     margin:  0 18px;
     height:41px;
     line-height: 41px;
-    background:rgba(255,0,0,1);
+    background:#FF6C2E;
     border-radius:3px;
     margin-top: 30px;
 }
@@ -1015,6 +1055,22 @@ transition: left 300ms;
     font-size:15px;
     font-weight:bold;
     color:rgba(255,255,255,1);
+}
+
+/*ios使用sticky样式实现*/
+.nav-sticky{
+    z-index: 9999;/*需设置zIndex,避免在悬停时,可能会被列表数据遮住*/
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;/*相对mescroll的div悬停的位置*/
+}
+/*android和pc端悬停*/
+.nav-fixed{
+    z-index: 9999;
+    position: fixed;
+    top: 44px;
+    left: 0;
+    width: 100%;
 }
 </style>
 
