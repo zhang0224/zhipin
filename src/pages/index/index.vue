@@ -41,7 +41,7 @@
 
             <!-- 一级分类对应轮播 -->
             <swiper ref="mySwiper" :options="swiperOption" v-if="tabs.length > 0">
-                <swiper-slide v-for="(item,index) in tabs" :key="index">
+                <swiper-slide class="swiper-no-swiping" v-for="(item,index) in tabs" :key="index">
                     <div class="type-list">
                         <ul v-if=" tabs[index].subTabs && tabs[index].subTabs.length > 1">
                             <template>
@@ -63,7 +63,7 @@
                                 <div class="pd-img-box">
                                     <img class="item-bg" src="../../assets/img/item-bg.png"/>
                                     <img class="item-pd" src="../../assets/img/item-pd.png"/>
-                                    <div class="pd-item-img">   
+                                    <div class="pd-item-img" @click="goDetail($event,pd.id)">   
                                         <img class="pd-img" v-lazy="pd.img" alt="" :key="pd.img"/>
                                     </div>
                                 </div>
@@ -151,7 +151,8 @@ export default {
                     transitionEnd: () => {
                         this.changeTab(this.swiper.activeIndex);
                     }
-                }
+                },
+                noSwiping : true
             },
             showPop:false,
             showSuccess:false,
@@ -169,10 +170,10 @@ export default {
     },
     computed: {
         swiper () { // 轮播对象
-            return this.$refs.mySwiper.swiper
+            return this.$refs.mySwiper.swiper;
         },
         barLeft () { // 红线的位置
-            return (this.tabWidth * this.curIndex + (this.tabWidth - this.barWidth) / 2) + 'px'
+            return (this.tabWidth * this.curIndex + (this.tabWidth - this.barWidth) / 2) + 'px';
         }
     },
     created () {
@@ -257,7 +258,7 @@ export default {
         appointmentBuy(e){
             var _this = this;
             if(!_this.canBuy){
-                let text = '亲，您已经预订过了哦~'
+                let text = '亲，每个人只能购买三个种子哦'
                 this.$toast(text, {
                     durtaion: 2000,
                     location: 'center' // 默认在中间
@@ -344,17 +345,24 @@ export default {
             let _this = this;
             let totalfee = this.totalfee;
             let name = this.name;
-            axios.defaults.baseURL = '/api/' 
+            axios.defaults.baseURL = '/api/'
+            let data = {
+                seedPrice:totalfee,
+                payPrice:totalfee,
+                seedName:name,
+                openId:sessionStorage.getItem("openid")
+            } 
             this.$http({
                 method:'get',
-                url:'/wxchat/insertWxchatOrder?seedPrice=' + totalfee + '&payPrice='+ totalfee +'&seedName=' + name +'&openId='+sessionStorage.getItem("openid"),   
+                url:'/wxchat/insertWxchatOrder',   
+                params:data,
             }).then(function(res){
                 _this.showLoading = false;
                 _this.showSure = false;
                 _this.showPop = true;
                 _this.showSuccess = true;
                 _this.status = false;
-                _getCheckBuy();
+                _this.getCheckBuy();
             }).catch(function(err){
                 console.log(err)
             })
@@ -379,6 +387,10 @@ export default {
             }
 
             console.log(_this.tabs[index].list);
+        },
+        goDetail(e,id){
+            console.log(id);
+            this.$router.push({ path: '/detail', query: { id: id }});
         },
         dataList(index){
             return "dataList" + index;
@@ -570,14 +582,14 @@ export default {
                 });
             };
 
-            _this.timer = setInterval(function(){
-                var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
-                var ispeed = Math.floor(-scrollTop/6);
-                if(scrollTop <= 0){
-                    clearInterval(_this.timer);
-                }
-                document.documentElement.scrollTop = document.body.scrollTop=scrollTop+ispeed;
-            },30);
+            // _this.timer = setInterval(function(){
+            //     var scrollTop=document.documentElement.scrollTop||document.body.scrollTop;
+            //     var ispeed = Math.floor(-scrollTop/6);
+            //     if(scrollTop <= 0){
+            //         clearInterval(_this.timer);
+            //     }
+            //     document.documentElement.scrollTop = document.body.scrollTop=scrollTop+ispeed;
+            // },30);
 
             if (newTab.mescroll) {
                 if (!newTab.isListInit) {
@@ -862,6 +874,7 @@ transition: left 300ms;
     border-radius:5px;
     width: 47%;
     margin-bottom: 12px;
+    border:1px solid rgba(36, 35, 35, 0.1);
 }
 .pd-img-box{
     width: 100%;
@@ -885,19 +898,18 @@ transition: left 300ms;
 .pd-img-box img.item-pd{
     position: absolute;
     z-index: 11;
-    width: 75px;
-    height: 90px;
+    width: 76px;
+    height: 96px;
 }
 .pd-img-box .pd-item-img{
     position: absolute;
     background: #fff;
     z-index: 22;
-    width: 44px;
-    height: 44px;
+    width: 70px;
+    height: 70px;
     border-radius: 100%;
     overflow: hidden;
-    left: 10px;
-    bottom: 10px;
+    bottom: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -919,7 +931,7 @@ transition: left 300ms;
 .data-li .item-box{
     text-align: left;
     font-size: 0;
-    padding-bottom: 7px;
+    padding-bottom: 2px;
     height: 40px;
 }
 .data-li .item-box .icon-tips{ 
@@ -927,11 +939,12 @@ transition: left 300ms;
     height: 15px;
 }
 .data-li .item-box .text-box{
-    margin-top: 12px;
+    margin-top: 5px;
     display: flex;
     align-items:center;
     justify-content: space-around ;
     padding: 0 2px;
+    /* border:1px solid rgba(36, 35, 35, 0.22); */
 
 }
 .data-li .pd-name{

@@ -7,6 +7,7 @@ import Explain from './pages/explain'
 import Order from './pages/order/order'
 import Active from './pages/active'
 import Download from './pages/download'
+import Detail from './pages/detail/detail'
  
 Vue.use(Router)
  
@@ -16,6 +17,7 @@ export default new Router({
     { path: '/explain', name: 'Explain', component: Explain },
     { path: '/order', name: 'Order', component: Order },
     { path: '/active', name: 'Active', component: Active },
-    { path: '/download', name: 'Download', component: Download }
+    { path: '/download', name: 'Download', component: Download },
+    { path: '/detail', name: 'Detail', component: Detail }
   ]
 })

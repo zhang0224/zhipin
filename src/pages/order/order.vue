@@ -7,8 +7,8 @@
                     <li v-for="item in newArr" :key="item.id">
                         <p><span>订单编号:</span>{{ item.serialNo }}</p>
                         <p><span>商品名称:</span>{{ item.seedName }}</p>
-                        <p><span>商品价格:</span>{{ item.seedPrice }}</p>
-                        <p><span>实际支付价格:</span>{{ item.payPrice }}</p>
+                        <p><span>商品价格:</span>¥{{ item.seedPrice }}</p>
+                        <p><span>实际支付价格:</span>¥{{ item.payPrice }}</p>
                         <p><span>购买时间:</span>{{ item.createTime }}</p>
                     </li>
                 </ul>

@@ -391,9 +391,6 @@ export default {
     justify-content: space-around;
     padding: 0 4px;
 }
-.active .active-content .shopItem .item ul li .static .text{
-    
-}
 .active .active-content .shopItem .item ul li .static .text .name{
     font-size:12px;
     color:rgba(40,39,39,1);
