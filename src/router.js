@@ -19,5 +19,8 @@ export default new Router({
     { path: '/active', name: 'Active', component: Active },
     { path: '/download', name: 'Download', component: Download },
     { path: '/detail', name: 'Detail', component: Detail }
-  ]
+  ],
+  scrollBehavior (to, from, savedPosition) {
+    return { x: 0, y: 0 }
+  }
 })

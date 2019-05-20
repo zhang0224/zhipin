@@ -60,10 +60,10 @@
                     <div class="mescroll">
                         <ul :id="dataList(index)" class="itemList">
                             <li class="data-li" v-for="pd in tabs[index].list" :key="pd.id">
-                                <div class="pd-img-box">
+                                <div class="pd-img-box" @click="goDetail($event,pd.id)">
                                     <img class="item-bg" src="../../assets/img/item-bg.png"/>
                                     <img class="item-pd" src="../../assets/img/item-pd.png"/>
-                                    <div class="pd-item-img" @click="goDetail($event,pd.id)">   
+                                    <div class="pd-item-img">   
                                         <img class="pd-img" v-lazy="pd.img" alt="" :key="pd.img"/>
                                     </div>
                                 </div>
@@ -202,6 +202,7 @@ export default {
         },
         getOpenId (code) { // 通过code获取 openId等用户信息，/api/user/wechat/login 为后台接口;
             if(sessionStorage.getItem("code") == code){
+                _this.getCheckBuy();
                 return;
             }
             let _this = this;
@@ -685,10 +686,10 @@ export default {
     //进入路由
     beforeRouteEnter (to, from, next) { // 如果没有配置回到顶部按钮或isBounce,则beforeRouteEnter不用写
         next(vm => {
-        let curMescroll = vm.$refs['mescroll' + vm.curIndex]; // 找到当前mescroll的ref,调用子组件mescroll-vue的beforeRouteEnter方法
-        curMescroll && curMescroll.beforeRouteEnter() // 进入路由时,滚动到原来的列表位置,恢复回到顶部按钮和isBounce的配置
-        // 恢复水平菜单的滚动条位置
-        if (vm.$refs.tabsContent) vm.$refs.tabsContent.scrollLeft = vm.tabScrollLeft;
+            let curMescroll = vm.$refs['mescroll' + vm.curIndex]; // 找到当前mescroll的ref,调用子组件mescroll-vue的beforeRouteEnter方法
+            curMescroll && curMescroll.beforeRouteEnter() // 进入路由时,滚动到原来的列表位置,恢复回到顶部按钮和isBounce的配置
+            // 恢复水平菜单的滚动条位置
+            if (vm.$refs.tabsContent) vm.$refs.tabsContent.scrollLeft = vm.tabScrollLeft;
         })
     },
     //离开路由
@@ -821,7 +822,7 @@ export default {
     align-items:center;
     justify-content: center;
     padding:  0 10px;
-    margin-right: 10px;
+    margin-right: 8px;
 }
 .content  .type-list ul li:last-child(){
     margin-right: 0;

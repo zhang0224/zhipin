@@ -5,7 +5,7 @@
             <div class="item">
                 <img  class="sprout" src="../../assets/img/icon-sprout.png" alt="">
                 <div class="item-img">
-                    <img src="https://graph.baidu.com/resource/101c68e3b582bc2645e1e01557321311.jpg" alt="">
+                    <img :src="data.img" alt="">
                 </div>
             </div>
         </div>
@@ -14,11 +14,11 @@
                 <li>
                     <div class="item-info">
                         <span>种子名称：</span>
-                        <p>{{ data.name }}</p>
+                        <p class="item-name">{{ data.name }}</p>
                     </div>
                     <div class="item-info">
                         <span>专柜价格：</span>
-                        <p>{{ '¥' + data.costPrice }}</p>
+                        <p class="old-price">{{ '¥' + data.costPrice }}</p>
                     </div>
                 </li>
                 <li>
@@ -27,7 +27,7 @@
                         <p class="info-price">{{ '¥' + data.presentPrice }}</p>
                     </div>
                     <div class="item-info">
-                        <span>日&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;省：</span>
+                        <span>日<span style="visibility:hidden">日省</span>省：</span>
                         <p class="info-price">{{ '¥' + data.save }}</p>
                     </div>
                 </li>
@@ -41,7 +41,7 @@
         </div>
         <div class="detail-explain">
             <h3>游戏规则</h3>
-            <p>1.关注公众号，预订商品种子，预订成功后下载职拼APP在职植 农场进行种植培育 2.每个种子的属性不同培育周期也不同，种子培育。</p>
+            <p>1.关注公众号，预订商品种子，预订成功后下载职拼APP在职植 农场进行种植培育。</p>
             <p>2.每个种子的属性不同培育周期也不同，种子培育周期约为10-28天，种子种植成功后可收取果实，兑换实物商品。</p>
             <p>3.每个微信id限购3次，果实成熟采摘后可培养下一批次的商品种子。</p>
             <p>4.所有商品种子均为正品，全部支持专柜验货。</p>
@@ -259,6 +259,7 @@ export default {
             _this.showPop = false;
             _this.showSure = false;
             _this.showSuccess = false;
+            _this.$router.go(-1);
         }
     }
     
@@ -304,6 +305,7 @@ export default {
 }
 .detail .detail-header .item .item-img img{
     width: 100%;
+    height: 100%;
     border-radius: 100%;
     object-fit: contain
 }
@@ -325,18 +327,20 @@ export default {
     margin-bottom: 0;
 }
 .detail-info ul li .item-info{
-    width: 53%;
+    width: 55%;
     display: flex;
     align-items: center;
     justify-content: flex-start
 }
+.detail-info ul li .item-info p.old-price{
+    text-decoration: line-through;
+}
 .detail-info ul li .item-info:last-child{
-    width: 47%;
+    width: 45%;
 }
 .detail-info ul li .item-info span{
     display: block;
     display: flex;
-    width: 75px;
     justify-content: space-between
 }
 .detail-info ul li .item-info p{
@@ -345,6 +349,10 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-align: left;
+}
+.detail-info ul li .item-info p.item-name{
+    width: 100px;
 }
 .detail-info ul li .item-info p.info-price{
     font-size:20px;
@@ -362,7 +370,6 @@ export default {
 }
 .detail-explain p{
     font-size:12px;
-    font-family:PingFangSC-Regular;
     color:#1C1C1C;
     line-height:24px;
 }
